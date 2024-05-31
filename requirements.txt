@@ -1,2 +1,6 @@
 langchain
 openai
+streamlit
+pypdf
+chromadb
+langchain_chroma
