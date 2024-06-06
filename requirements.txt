@@ -4,3 +4,4 @@ streamlit
 pypdf
 chromadb
 langchain_chroma
+langchain-ibm
