@@ -1,43 +1,27 @@
 from dotenv import find_dotenv, load_dotenv
-from langchain_ibm import WatsonxLLM
-from langchain.agents import Tool, create_tool_calling_agent, AgentExecutor
-from langchain_community.agent_toolkits.load_tools import load_tools
-from langchain.chains.llm_math.base import LLMMathChain
-from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, ChatPromptTemplate
+from langchain_openai import OpenAI, ChatOpenAI
+from langchain.agents import create_tool_calling_agent, AgentExecutor, load_tools
+from langchain.prompts import ChatPromptTemplate
 from langchain.memory import ConversationBufferMemory
-import os
 
 load_dotenv(find_dotenv())
-llm = "ibm/granite-13b-instruct-v2"
-chat = WatsonxLLM(
-    model_id=llm,
-    url="https://us-south.ml.cloud.ibm.com",
-    project_id=os.environ["WATSONX_PROJECT_ID"],
-    apikey=os.environ["WATSONX_APIKEY"],
-    params={
-        "decoding_method": "sample",
-        "max_new_tokens": 100,
-        "min_new_tokens": 1,
-        "temperature": 0.0,
-        "top_k": 50,
-        "top_p": 1,
-    }
-)
+llm = "gpt-3.5-turbo"
+open_ai = OpenAI(temperature=0.0)
+chat = ChatOpenAI(temperature=0.6, model=llm)
 
 
 # load_tools is bundles with langchain
 tools = load_tools(['llm-math'], llm=chat)
 
-prompt = ChatPromptTemplate.from_messages([
-    SystemMessagePromptTemplate(prompt=PromptTemplate(input_variables=[], template='You are a helpful assistant')),
-    MessagesPlaceholder(variable_name='chat_history', optional=True),
-    HumanMessagePromptTemplate(prompt=PromptTemplate(input_variables=['input'], template='{input}')),
-    MessagesPlaceholder(variable_name='agent_scratchpad')
-])
-
-memory = ConversationBufferMemory(
-  memory_key="chat_history"
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a helpful assistant"),
+        ("placeholder", "{chat_history}"),
+        ("human", "{input}"),
+        ("placeholder", "{agent_scratchpad}"),
+    ]
 )
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 agent = create_tool_calling_agent(
     tools=tools,
@@ -54,9 +38,12 @@ while True:
     if user_input.lower() == "exit":
         break
 
-    response = agent_executor.invoke({
-        "input": user_input
-    })
+    try:
+        response = agent_executor.invoke({
+            "input": user_input
+        })
+    except Exception as error:
+        print(error)
 
     print("AI: ", response["output"])
     print("===========================================================")

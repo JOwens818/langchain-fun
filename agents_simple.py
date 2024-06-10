@@ -1,6 +1,6 @@
 from dotenv import find_dotenv, load_dotenv
 from langchain_openai import OpenAI, ChatOpenAI
-from langchain.agents import Tool, create_tool_calling_agent, AgentExecutor, load_tools
+from langchain.agents import create_tool_calling_agent, AgentExecutor, load_tools
 from langchain.chains.llm_math.base import LLMMathChain
 from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, ChatPromptTemplate
 
